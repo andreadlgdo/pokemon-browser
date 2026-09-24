@@ -46,3 +46,11 @@ export interface PokemonDetail {
   abilities: PokemonAbility[]
   sprites: PokemonSprites
 }
+
+export interface TypeListResponse {
+  results: { name: string }[]
+}
+
+export interface TypeResponse {
+  pokemon: { pokemon: PokemonListItem }[]
+}
