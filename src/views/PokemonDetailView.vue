@@ -10,27 +10,18 @@
       </div>
     </template>
 
-    <template v-else-if="store.detailStatus === 'error'">
-      <p v-if="store.detailError?.kind === 'not_found'" class="mt-6 text-muted">
+    <template v-else-if="store.detailStatus === 'error' && store.detailError">
+      <p v-if="store.detailError.kind === 'not_found'" class="mt-6 text-muted">
         Pokémon not found
       </p>
 
-      <UAlert
-        v-else-if="store.detailError?.retryable"
+      <AppErrorState
+        v-else
         class="mt-6"
-        color="error"
-        variant="subtle"
-        :description="store.detailError.message"
-      >
-        <template #actions>
-          <UButton
-            label="Try again"
-            @click="store.loadPokemonDetail(route.params.name as string)"
-          />
-        </template>
-      </UAlert>
-
-      <p v-else-if="store.detailError" class="mt-6 text-muted">{{ store.detailError.message }}</p>
+        :error="store.detailError"
+        variant="blocking"
+        @retry="store.loadPokemonDetail(route.params.name as string)"
+      />
     </template>
 
     <template v-else-if="store.detailStatus === 'ready' && pokemon">
@@ -77,7 +68,7 @@
         <ul class="mt-4 space-y-3">
           <li v-for="s in pokemon.stats" :key="s.stat.name">
             <span class="text-sm text-muted">
-              {{ s.stat.name.charAt(0).toUpperCase() + s.stat.name.slice(1).replace('-', ' ') }}
+              {{ humanize(s.stat.name) }}
             </span>
             <UProgress
               :model-value="s.base_stat"
@@ -93,8 +84,7 @@
         <h2 class="text-lg font-semibold text-primary">Abilities</h2>
         <ul class="mt-4 list-disc space-y-1 pl-5 text-muted">
           <li v-for="a in pokemon.abilities" :key="a.ability.name">
-            {{ a.ability.name.charAt(0).toUpperCase() + a.ability.name.slice(1).replace('-', ' ')
-            }}{{ a.is_hidden ? ' (hidden)' : '' }}
+            {{ humanize(a.ability.name) }}{{ a.is_hidden ? ' (hidden)' : '' }}
           </li>
         </ul>
       </section>
@@ -103,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import AppErrorState from '@/components/AppErrorState.vue'
 import { usePokemonStore } from '@/stores/pokemonStore'
 import { useRoute } from 'vue-router'
 import { watch, computed } from 'vue'
@@ -117,4 +108,6 @@ watch(
 )
 
 const pokemon = computed(() => store.detailsByName[route.params.name as string])
+
+const humanize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replaceAll('-', ' ')
 </script>

@@ -9,7 +9,7 @@
     >
       <div class="flex flex-col items-center gap-3">
         <div class="flex size-50 items-center justify-center">
-          <USkeleton v-if="detail === undefined" class="size-50" />
+          <USkeleton v-if="detail === undefined && !failedThumbnail" class="size-50" />
           <img
             v-else-if="imageUrl"
             :src="imageUrl"
@@ -43,6 +43,7 @@ import { computed } from 'vue'
 const props = defineProps<{
   name: string
   detail?: PokemonDetail
+  failedThumbnail?: boolean
 }>()
 
 const imageUrl = computed(
