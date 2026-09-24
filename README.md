@@ -171,3 +171,86 @@ If it does not, a newer call has taken control and the older execution is no lon
 The cache write happens before this check, while the status update happens afterwards. This means a late response can still contribute useful data to the cache, but it can no longer affect the state of the current screen.
 
 The tokens are not reactive or exported because they are only an internal mechanism for deciding which asynchronous operation is allowed to update the status.
+
+## Error handling
+
+### Error flow
+
+When something fails, the error moves through four layers, each with a single responsibility:
+
+```text
+fetch rejects or res.ok === false
+
+  → pokemonApi.ts throws HttpError(status) or propagates TypeError / AbortError
+
+  → mapApiError(e) converts unknown into AppError { kind, message, retryable }
+
+  → the store action saves the error in the appropriate slot and sets its region status to 'error'
+
+  → the component reads status + error and decides what to render
+```
+
+The service layer knows nothing about the UI; it only throws or rejects.
+
+`mapApiError` knows nothing about Pinia; it only classifies errors.
+
+The store does not decide whether an error should appear as a red or yellow alert. It only stores the `AppError` and updates the status for the affected UI region.
+
+The component does not decide whether a 404 is retryable. It simply reads `error.retryable`.
+
+This separation also makes `mapApiError` easy to test in isolation: it is a pure function that receives an `unknown` value and returns an `AppError`.
+
+### Error taxonomy
+
+All errors are normalized into six possible `kind` values. The UI never needs to inspect HTTP status codes directly; it works with `kind` and `retryable` instead.
+
+| `kind`       | Source                                            | Retryable? | User-facing message                                |
+| ------------ | ------------------------------------------------- | ---------- | -------------------------------------------------- |
+| `not_found`  | `HttpError(404)`                                  | **No**     | "We couldn't find that Pokémon."                   |
+| `rate_limit` | `HttpError(429)`                                  | **Yes**    | "Too many requests. Wait a moment and try again."  |
+| `server`     | `HttpError(>= 500)`                               | **Yes**    | "The Pokémon API is having problems. Try again."   |
+| `timeout`    | `AbortError` from the 8-second timeout            | **Yes**    | "The request took too long. Try again."            |
+| `network`    | `TypeError` such as offline, DNS or CORS failures | **Yes**    | "No connection. Check your network and try again." |
+| `unknown`    | Anything else                                     | **No**     | "Something went wrong."                            |
+
+Classification relies on `instanceof`, never on matching error message strings. Messages may vary between browsers, while the error type is a more reliable signal.
+
+`retryable` and the message are kept consistent: if `retryable` is `false`, the message does not ask the user to try again because the UI will not display a retry action.
+
+### Permanent vs transient failures
+
+Not every failure should be handled in the same way. The main question is: **can retrying realistically change the result?**
+
+On the detail route (`/pokemon/:name`), a 404 is a valid outcome. The Pokémon name comes directly from the URL, so a user may navigate to something like `/pokemon/does-not-exist`. In that case, `not_found` displays `"Pokémon not found"` without a retry button because repeating the same request would produce the same result.
+
+In the list, a 404 would be unusual because Pokémon names come from PokéAPI's own catalog. Grid-detail failures are therefore expected to be mostly transient errors such as network failures, timeouts, rate limits, or server errors.
+
+Thumbnail failures are treated as non-blocking. Cards can still render from the catalog using the Pokémon name and a placeholder, while search and type filtering remain available.
+
+### Severity by UI region
+
+The **status** tells the application *where* the failure happened. The **error** describes *what* happened.
+
+These are separate concerns, which allows the same `AppErrorState` component to be reused with different levels of severity.
+
+| Region          | Status              | Error slot    | UI treatment                                                                                        | Blocks interaction?                                                        |
+| --------------- | ------------------- | ------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| List bootstrap  | `bootstrapStatus`   | `error`       | Blocking `AppErrorState` + `"Try again"` → `bootstrap()`                                            | **Yes.** Without the catalog there is no search, filtering, or pagination. |
+| Grid thumbnails | `pageDetailsStatus` | `error`       | Inline `AppErrorState` + retry → `ensurePageDetails()`                                              | **No.** Filters stay available and cards render with placeholders.         |
+| Detail view     | `detailStatus`      | `detailError` | 404 → message without retry. Transient failure → blocking error + retry → `loadPokemonDetail(name)` | **Yes**, but only for that route.                                          |
+
+Bootstrap and thumbnail loading share the `error` slot because thumbnail requests only start after bootstrap succeeds. They cannot independently represent competing errors on screen.
+
+Detail errors use a separate `detailError` slot so failures do not cross route boundaries: an error in the list must not appear on the detail page, and vice versa.
+
+`AppErrorState` contains no business logic. It receives an already classified `AppError` and uses `error.retryable` only to decide whether the retry button should be rendered.
+
+### Where each responsibility lives
+
+| Piece                       | File                           | Responsibility                                                                                |
+| --------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `HttpError`                 | `services/pokemonApi.ts`       | Preserves the HTTP status because `fetch` does not reject automatically for 4xx/5xx responses |
+| `AppError` + `AppErrorKind` | `types/error.ts`               | Defines the error shape consumed by the UI                                                    |
+| `mapApiError`               | `utils/mapApiError.ts`         | Pure normalization function: `unknown` → `AppError`                                           |
+| Status + error slots        | `stores/pokemonStore.ts`       | Each action updates the status for its own UI region                                          |
+| Presentation                | `components/AppErrorState.vue` | Renders the error and emits `retry`                                                           |
