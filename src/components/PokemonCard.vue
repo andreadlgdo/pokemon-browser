@@ -4,8 +4,8 @@
     class="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
     <UCard
-    variant="outline"
-      class="h-full  group-hover:ring-primary-200! group-hover:ring-2 transition-all duration-300"
+      variant="outline"
+      class="h-full group-hover:ring-primary-200! group-hover:ring-2 transition-all duration-300"
     >
       <div class="flex flex-col items-center gap-3">
         <div class="flex size-50 items-center justify-center">
