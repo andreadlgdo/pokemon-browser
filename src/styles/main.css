@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme static {
+  --color-brand-50: #eef0fc;
+  --color-brand-100: #dce1fa;
+  --color-brand-200: #bfc7f4;
+  --color-brand-300: #9aa7ec;
+  --color-brand-400: #6a7be1;
+  --color-brand-500: #3b4cca;
+  --color-brand-600: #3241b2;
+  --color-brand-700: #2b3696;
+  --color-brand-800: #26317b;
+  --color-brand-900: #20295f;
+  --color-brand-950: #111735;
+
+  --color-sun-50: #fffde6;
+  --color-sun-100: #fff9bf;
+  --color-sun-200: #fff08a;
+  --color-sun-300: #ffe94a;
+  --color-sun-400: #ffe523;
+  --color-sun-500: #ffde00;
+  --color-sun-600: #dbb800;
+  --color-sun-700: #ae8e00;
+  --color-sun-800: #806a00;
+  --color-sun-900: #5d4e00;
+  --color-sun-950: #382e00;
+
+  --color-danger-50: #fff0f0;
+  --color-danger-100: #ffdede;
+  --color-danger-200: #ffc2c2;
+  --color-danger-300: #ff9999;
+  --color-danger-400: #f45e5e;
+  --color-danger-500: #cc0000;
+  --color-danger-600: #b00000;
+  --color-danger-700: #940000;
+  --color-danger-800: #760000;
+  --color-danger-900: #5c0000;
+  --color-danger-950: #350000;
+}
