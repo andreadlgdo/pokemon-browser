@@ -38,3 +38,7 @@
   --color-danger-900: #5c0000;
   --color-danger-950: #350000;
 }
+
+body {
+  @apply min-h-dvh !bg-secondary-50;
+}

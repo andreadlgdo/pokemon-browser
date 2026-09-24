@@ -4,7 +4,8 @@
     class="group block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
   >
     <UCard
-      variant="outline"
+      variant="subtle"
+      color="primary"
       class="h-full group-hover:ring-primary-200! group-hover:ring-2 transition-all duration-300"
     >
       <div class="flex flex-col items-center gap-3">
@@ -27,7 +28,13 @@
         <h2 class="capitalize">{{ name }}</h2>
 
         <div v-if="detail?.types.length" class="flex flex-wrap justify-center gap-1">
-          <UBadge v-for="t in detail.types" :key="t.type.name" variant="subtle" class="capitalize">
+          <UBadge
+            v-for="t in detail.types"
+            :key="t.type.name"
+            variant="soft"
+            class="capitalize"
+            :class="typeColorClass(t.type.name)"
+          >
             {{ t.type.name }}
           </UBadge>
         </div>
@@ -38,6 +45,7 @@
 
 <script setup lang="ts">
 import type { PokemonDetail } from '@/types/pokemon'
+import { typeColorClass } from '@/utils/typeColors'
 import { computed } from 'vue'
 
 const props = defineProps<{

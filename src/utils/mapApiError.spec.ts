@@ -25,10 +25,12 @@ describe('mapApiError', () => {
   })
 
   it('classifies AbortError as timeout', () => {
-    expect(mapApiError(new DOMException('The operation was aborted.', 'AbortError'))).toMatchObject({
-      kind: 'timeout',
-      retryable: true,
-    })
+    expect(mapApiError(new DOMException('The operation was aborted.', 'AbortError'))).toMatchObject(
+      {
+        kind: 'timeout',
+        retryable: true,
+      },
+    )
   })
 
   it('classifies TypeError as network', () => {
