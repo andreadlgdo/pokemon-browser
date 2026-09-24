@@ -2,6 +2,9 @@
 
 A web app for browsing Pokémon using [PokéAPI](https://pokeapi.co/docs/v2). Built with Vue 3 and TypeScript.
 
+## Web app
+https://pokemon-browser-andrea.vercel.app/
+
 ## Tech stack
 
 * Vue 3 and TypeScript
