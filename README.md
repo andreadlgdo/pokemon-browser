@@ -254,3 +254,13 @@ Detail errors use a separate `detailError` slot so failures do not cross route b
 | `mapApiError`               | `utils/mapApiError.ts`         | Pure normalization function: `unknown` → `AppError`                                           |
 | Status + error slots        | `stores/pokemonStore.ts`       | Each action updates the status for its own UI region                                          |
 | Presentation                | `components/AppErrorState.vue` | Renders the error and emits `retry`                                                           |
+
+## Testing
+
+Tests focus on pure logic with the highest regression value:
+
+- `mapApiError` — error classification (`kind` + `retryable`)
+- Store derivation — search runs over the full catalog before pagination,
+  and filters reset `currentPage` to 1
+
+Not covered on purpose: visual components (logic lives in the store), router navigation (verified manually), and live API calls (would need fetch mocks; out of scope for the time box).
